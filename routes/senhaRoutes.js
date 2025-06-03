@@ -45,6 +45,18 @@ router.get('/', async (req, res) => {
   }
 });
 
+// GET /api/senhas/gerar/nova - Gera uma nova senha aleatória
+// IMPORTANTE: Esta rota deve vir ANTES da rota /:id para evitar conflitos
+router.get('/gerar/nova', async (req, res) => {
+  try {
+    const novaSenha = gerarSenha();
+    res.json({ senha: novaSenha });
+  } catch (error) {
+    console.error('Erro ao gerar senha:', error);
+    res.status(500).json({ error: 'Erro ao gerar senha' });
+  }
+});
+
 // GET /api/senhas/:id - Retorna uma senha específica pelo ID
 router.get('/:id', async (req, res) => {
   try {
@@ -72,17 +84,6 @@ router.get('/:id', async (req, res) => {
   } catch (error) {
     console.error('Erro ao buscar senha:', error);
     res.status(500).json({ error: 'Erro ao buscar senha' });
-  }
-});
-
-// GET /api/senhas/gerar - Gera uma nova senha aleatória
-router.get('/gerar/nova', async (req, res) => {
-  try {
-    const novaSenha = gerarSenha();
-    res.json({ senha: novaSenha });
-  } catch (error) {
-    console.error('Erro ao gerar senha:', error);
-    res.status(500).json({ error: 'Erro ao gerar senha' });
   }
 });
 
