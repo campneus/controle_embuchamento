@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Controle de Senhas - CL Autopartes e V3 Autopeças (Versão 2.0)</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #f0f0f0;
+            --secondary-color: #d1d1d1;
+            --accent-color: #FFD700;
+            --disabled-color: #f0f0f0;
+            --disabled-text: #999;
+        }
+        
+        body {
+            background-color: var(--primary-color);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .container {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header {
+            background-color: var(--secondary-color);
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+        }
+        
+        .btn-primary {
+            background-color: var(--accent-color);
+            border: none;
+            color: #333;
+            padding: 0.5rem 1rem;
+            border-radius: 0.25rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            background-color: #e6c200;
+            transform: translateY(-1px);
+        }
+        
+        .form-container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+        
+        .password-display {
+            background-color: var(--accent-color);
+            color: #333;
+            font-weight: bold;
+            padding: 0.5rem;
+            border-radius: 4px;
+            text-align: center;
+        }
+        
+        table {
+            border-collapse: collapse;
+            width: 100%;
+        }
+        
+        thead th {
+            background-color: var(--secondary-color);
+            color: #333;
+            text-align: left;
+            padding: 12px;
+            font-weight: bold;
+        }
+        
+        tbody tr {
+            border-bottom: 1px solid #ddd;
+            transition: all 0.2s ease;
+        }
+        
+        tbody tr:hover {
+            background-color: #f9f9f9;
+        }
+        
+        tbody td {
+            padding: 10px 12px;
+        }
+        
+        .canceled-row {
+            background-color: var(--disabled-color);
+            color: var(--disabled-text);
+            text-decoration: line-through;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        
+        .modal-content {
+            background-color: white;
+            margin: 15% auto;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            width: 80%;
+            max-width: 500px;
+        }
+        
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .close:hover {
+            color: black;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto px-4 py-8 max-w-6xl">
+        <div class="header p-6 mb-6 text-center">
+            <h1 class="text-3xl font-bold">Controle de Senhas - Fornecedores</h1>
+            <p class="text-lg mt-2">CL Autopartes e V3 Autopeças</p>
+        </div>
+
+        <!-- Formulário de Registro de Senhas -->
+        <div class="form-container p-6 mb-8">
+            <h2 class="text-xl font-bold mb-4">Registro de Senhas</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Fornecedor*</label>
+                    <select id="fornecedor" class="w-full p-2 border rounded">
+                        <option value="">Selecione o Fornecedor</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Filial*</label>
+                    <select id="filial" class="w-full p-2 border rounded">
+                        <option value="">Selecione a Filial</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Placa</label>
+                    <input type="text" id="placa" class="w-full p-2 border rounded" placeholder="Digite a placa (opcional)">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Orçamento</label>
+                    <input type="text" id="orcamento" class="w-full p-2 border rounded" placeholder="Digite o orçamento (opcional)">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Senha</label>
+                    <div class="flex">
+                        <div id="senha-display" class="password-display w-full">Gerar senha</div>
+                        <button id="btn-gerar-senha" class="btn-primary ml-2">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="flex items-end">
+                    <button id="btn-adicionar" class="btn-primary w-full">Adicionar Registro</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabela de Senhas Registradas -->
+        <div class="mb-6">
+            <h2 class="text-xl font-bold mb-4">Senhas Registradas</h2>
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Fornecedor</th>
+                            <th>Filial</th>
+                            <th>Data/Hora</th>
+                            <th>Placa</th>
+                            <th>Orçamento</th>
+                            <th>Senha</th>
+                            <th>Status</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="senhas-table-body">
+                        <!-- Dados serão inseridos dinamicamente aqui -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Botão de Exportação -->
+        <div class="text-center mb-8">
+            <button id="btn-exportar" class="btn-primary px-8 py-2">
+                <i class="fas fa-file-excel mr-2"></i> Exportar para Excel
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal para Motivo de Cancelamento -->
+    <div id="modal-cancelamento" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2 class="text-xl font-bold mb-4">Motivo do Cancelamento</h2>
+            <p class="mb-4">Por favor, informe o motivo do cancelamento desta senha:</p>
+            <textarea id="motivo-cancelamento" class="w-full p-2 border rounded mb-4" rows="3"></textarea>
+            <input type="hidden" id="senha-para-cancelar">
+            <button id="confirmar-cancelamento" class="btn-primary">Confirmar Cancelamento</button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Elementos DOM
+            const fornecedorSelect = document.getElementById('fornecedor');
+            const filialSelect = document.getElementById('filial');
+            const senhaDisplay = document.getElementById('senha-display');
+            const btnGerarSenha = document.getElementById('btn-gerar-senha');
+            const btnAdicionar = document.getElementById('btn-adicionar');
+            const senhasTableBody = document.getElementById('senhas-table-body');
+            const btnExportar = document.getElementById('btn-exportar');
+            const modalCancelamento = document.getElementById('modal-cancelamento');
+            const closeModal = document.querySelector('.close');
+            const motivoCancelamento = document.getElementById('motivo-cancelamento');
+            const senhaParaCancelar = document.getElementById('senha-para-cancelar');
+            const confirmarCancelamento = document.getElementById('confirmar-cancelamento');
+            
+            // Variáveis globais
+            let fornecedores = [];
+            let filiais = {};
+            let senhas = [];
+            let senhaAtual = '';
+            
+            // Carregar fornecedores e filiais
+            const carregarFornecedores = async () => {
+                try {
+                    const response = await fetch('/api/fornecedores');
+                    if (!response.ok) {
+                        throw new Error('Erro ao carregar fornecedores');
+                    }
+                    
+                    fornecedores = await response.json();
+                    
+                    // Limpar e preencher select de fornecedores
+                    fornecedorSelect.innerHTML = '<option value="">Selecione o Fornecedor</option>';
+                    fornecedores.forEach(fornecedor => {
+                        const option = document.createElement('option');
+                        option.value = fornecedor.id;
+                        option.textContent = fornecedor.nome;
+                        fornecedorSelect.appendChild(option);
+                    });
+                    
+                    // Carregar filiais por fornecedor
+                    await carregarFiliasPorFornecedor();
+                } catch (error) {
+                    console.error('Erro:', error);
+                    alert('Erro ao carregar fornecedores. Verifique o console para mais detalhes.');
+                }
+            };
+            
+            const carregarFiliasPorFornecedor = async () => {
+                try {
+                    const response = await fetch('/api/filiais-por-fornecedor');
+                    if (!response.ok) {
+                        throw new Error('Erro ao carregar filiais');
+                    }
+                    
+                    filiais = await response.json();
+                } catch (error) {
+                    console.error('Erro:', error);
+                    alert('Erro ao carregar filiais. Verifique o console para mais detalhes.');
+                }
+            };
+            
+            // Atualizar filiais quando fornecedor for selecionado
+            fornecedorSelect.addEventListener('change', () => {
+                const fornecedorId = fornecedorSelect.value;
+                const fornecedorNome = fornecedorSelect.options[fornecedorSelect.selectedIndex].text;
+                
+                // Limpar select de filiais
+                filialSelect.innerHTML = '<option value="">Selecione a Filial</option>';
+                
+                if (fornecedorId && filiais[fornecedorNome]) {
+                    filiais[fornecedorNome].forEach(filial => {
+                        const option = document.createElement('option');
+                        option.value = filial.id;
+                        option.textContent = filial.nome;
+                        filialSelect.appendChild(option);
+                    });
+                }
+            });
+            
+            // Gerar senha aleatória
+            const gerarSenha = async () => {
+                try {
+                    const response = await fetch('/api/senhas/gerar');
+                    if (!response.ok) {
+                        throw new Error('Erro ao gerar senha');
+                    }
+                    
+                    const data = await response.json();
+                    senhaAtual = data.senha;
+                    senhaDisplay.textContent = senhaAtual;
+                } catch (error) {
+                    console.error('Erro:', error);
+                    alert('Erro ao gerar senha. Verifique o console para mais detalhes.');
+                }
+            };
+            
+            // Adicionar nova senha
+            const adicionarSenha = async () => {
+                const fornecedorId = fornecedorSelect.value;
+                const filialId = filialSelect.value;
+                const placa = document.getElementById('placa').value.trim();
+                const orcamento = document.getElementById('orcamento').value.trim();
+                
+                if (!fornecedorId) {
+                    alert('Por favor, selecione o fornecedor.');
+                    return;
+                }
+                
+                if (!filialId) {
+                    alert('Por favor, selecione a filial.');
+                    return;
+                }
+                
+                if (!senhaAtual) {
+                    alert('Por favor, gere uma senha.');
+                    return;
+                }
+                
+                try {
+                    const response = await fetch('/api/senhas', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            senha: senhaAtual,
+                            fornecedor_id: parseInt(fornecedorId),
+                            filial_id: parseInt(filialId),
+                            placa: placa || null,
+                            orcamento: orcamento || null
+                        })
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error('Erro ao adicionar senha');
+                    }
+                    
+                    // Limpar campos
+                    document.getElementById('placa').value = '';
+                    document.getElementById('orcamento').value = '';
+                    senhaDisplay.textContent = 'Gerar senha';
+                    senhaAtual = '';
+                    
+                    // Recarregar senhas
+                    await carregarSenhas();
+                    
+                    alert('Senha registrada com sucesso!');
+                } catch (error) {
+                    console.error('Erro:', error);
+                    alert('Erro ao adicionar senha. Verifique o console para mais detalhes.');
+                }
+            };
+            
+            // Carregar senhas
+            const carregarSenhas = async () => {
+                try {
+                    const response = await fetch('/api/senhas');
+                    if (!response.ok) {
+                        throw new Error('Erro ao carregar senhas');
+                    }
+                    
+                    senhas = await response.json();
+                    
+                    // Limpar tabela
+                    senhasTableBody.innerHTML = '';
+                    
+                    // Preencher tabela
+                    senhas.forEach((senha, index) => {
+                        const tr = document.createElement('tr');
+                        if (senha.cancelada) {
+                            tr.classList.add('canceled-row');
+                        }
+                        
+                        tr.innerHTML = `
+                            <td>${senha.id}</td>
+                            <td>${senha.fornecedor_nome}</td>
+                            <td>${senha.filial_nome}</td>
+                            <td>${senha.data_hora}</td>
+                            <td>${senha.placa || '-'}</td>
+                            <td>${senha.orcamento || '-'}</td>
+                            <td>${senha.senha}</td>
+                            <td>${senha.cancelada ? 'Cancelada' : 'Ativa'}</td>
+                            <td>
+                                ${!senha.cancelada ? 
+                                    `<button class="text-red-500 hover:text-red-700" onclick="abrirModalCancelamento(${senha.id})">
+                                        <i class="fas fa-times-circle"></i> Cancelar
+                                    </button>` : 
+                                    `<span class="text-gray-500">Cancelada</span>`
+                                }
+                            </td>
+                        `;
+                        
+                        senhasTableBody.appendChild(tr);
+                    });
+                } catch (error) {
+                    console.error('Erro:', error);
+                    alert('Erro ao carregar senhas. Verifique o console para mais detalhes.');
+                }
+            };
+            
+            // Exportar para Excel
+            const exportarParaExcel = () => {
+                if (senhas.length === 0) {
+                    alert('Não há senhas para exportar.');
+                    return;
+                }
+                
+                // Preparar dados para exportação
+                const dados = senhas.map(senha => ({
+                    'ID': senha.id,
+                    'Fornecedor': senha.fornecedor_nome,
+                    'Filial': senha.filial_nome,
+                    'Data/Hora': senha.data_hora,
+                    'Placa': senha.placa || '-',
+                    'Orçamento': senha.orcamento || '-',
+                    'Senha': senha.senha,
+                    'Status': senha.cancelada ? 'Cancelada' : 'Ativa',
+                    'Motivo Cancelamento': senha.motivo_cancelamento || '-'
+                }));
+                
+                // Criar workbook
+                const wb = XLSX.utils.book_new();
+                const ws = XLSX.utils.json_to_sheet(dados);
+                
+                // Definir largura das colunas
+                const wscols = [
+                    {wch: 5},   // ID
+                    {wch: 15},  // Fornecedor
+                    {wch: 25},  // Filial
+                    {wch: 20},  // Data/Hora
+                    {wch: 10},  // Placa
+                    {wch: 12},  // Orçamento
+                    {wch: 12},  // Senha
+                    {wch: 10},  // Status
+                    {wch: 30}   // Motivo
+                ];
+                ws['!cols'] = wscols;
+                
+                // Adicionar worksheet ao workbook
+                XLSX.utils.book_append_sheet(wb, ws, 'Senhas');
+                
+                // Exportar
+                XLSX.writeFile(wb, 'Controle_Senhas_Fornecedores.xlsx');
+            };
+            
+            // Funções para modal de cancelamento
+            window.abrirModalCancelamento = async (id) => {
+                senhaParaCancelar.value = id;
+                motivoCancelamento.value = '';
+                modalCancelamento.style.display = 'block';
+            };
+            
+            const fecharModal = () => {
+                modalCancelamento.style.display = 'none';
+            };
+            
+            const cancelarSenha = async () => {
+                const id = senhaParaCancelar.value;
+                const motivo = motivoCancelamento.value.trim();
+                
+                if (!motivo) {
+                    alert('Por favor, informe o motivo do cancelamento.');
+                    return;
+                }
+                
+                try {
+                    const response = await fetch(`/api/senhas/${id}/cancelar`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            motivo: motivo
+                        })
+                    });
+                    
+                    if (!response.ok) {
+                        throw new Error('Erro ao cancelar senha');
+                    }
+                    
+                    // Fechar modal
+                    fecharModal();
+                    
+                    // Recarregar senhas
+                    await carregarSenhas();
+                    
+                    alert('Senha cancelada com sucesso!');
+                } catch (error) {
+                    console.error('Erro:', error);
+                    alert('Erro ao cancelar senha. Verifique o console para mais detalhes.');
+                }
+            };
+            
+            // Event listeners
+            btnGerarSenha.addEventListener('click', gerarSenha);
+            btnAdicionar.addEventListener('click', adicionarSenha);
+            btnExportar.addEventListener('click', exportarParaExcel);
+            confirmarCancelamento.addEventListener('click', cancelarSenha);
+            closeModal.addEventListener('click', fecharModal);
+            window.addEventListener('click', (e) => {
+                if (e.target === modalCancelamento) {
+                    fecharModal();
+                }
+            });
+            
+            // Inicialização
+            carregarFornecedores();
+            carregarSenhas();
+        });
+    </script>
+</body>
+</html>
