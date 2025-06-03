@@ -8,6 +8,7 @@
 *   [X] Alterar texto inicial do campo senha para "Aguardando criação de senha ..." (`index.html`).
 *   [X] Posicionar botões "Gerar Senha" e "Adicionar Registro" um embaixo do outro (`index.html`).
 *   [X] Adicionar coluna "Observação" na tabela e exibir motivo do cancelamento (`index.html`).
+*   [X] Ajustar largura do campo/botão de senha para 70% (`index.html`).
 *   [X] Validar aplicação localmente.
 *   [ ] Compactar projeto final.
 *   [ ] Enviar projeto corrigido ao usuário.
