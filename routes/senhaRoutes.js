@@ -58,7 +58,15 @@ router.get('/gerar/nova', async (req, res) => {
 });
 
 // GET /api/senhas/:id - Retorna uma senha específica pelo ID
-router.get('/:id', async (req, res) => {
+router.get('/:id', async (req, res, next) => {
+  // Verifica se o ID é um número inteiro
+  if (!/^[0-9]+$/.test(req.params.id)) {
+    // Se não for um número, passa para a próxima rota (pode ser a /gerar/nova se a ordem estiver errada, mas a ordem já está correta)
+    // Ou simplesmente retorna um erro 400 se IDs não numéricos não são esperados aqui.
+    // return res.status(400).json({ error: 'ID inválido' });
+    // Neste caso, como temos /gerar/nova antes, um ID não numérico aqui é realmente inválido.
+     return res.status(400).json({ error: 'ID inválido, deve ser um número inteiro.' });
+  }
   try {
     const senha = await Senha.findByPk(req.params.id, {
       include: [
